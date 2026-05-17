@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ay Sonunu Getir: Sinematik RPG</title>
+    
+    <!-- 📱 MOBİL TAM EKRAN VE MOTOR BAĞLANTILARI (ADIM 3) -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log('Oyun Motoru Hazır!'))
+            .catch(err => console.log('Motor Hatası:', err));
+        });
+      }
+    </script>
+    <!-- 📱 MOBİL BAĞLANTILARI BİTTİ -->
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container" id="main-container">
+        <!-- ANİMASYONLU SİNEMATİK PERDE (ARA SAHNELER İÇİN) -->
+        <div id="cinematic-overlay" class="overlay hidden">
+            <div class="loader-content">
+                <div class="spinner"></div>
+                <h2 id="cinematic-title">HAYAT AKIYOR...</h2>
+                <p id="cinematic-subtitle">Lütfen bekleyin...</p>
+                <div class="cinema-progress"><div id="cinema-bar"></div></div>
+            </div>
+        </div>
+
+        <!-- ANA MENÜ (GİRİŞ) -->
+        <div id="start-screen" class="screen">
+            <div class="logo-area">
+                <h1>AY SONUNU<br><span class="highlight">GETİR!</span></h1>
+                <p class="tagline">V4.0 - Sinematik Animasyon Sürümü</p>
+            </div>
+            <div class="intro-box">
+                <p>💼 <b>Maaş:</b> 28.075 TL (Güncel Asgari Ücret)</p>
+                <p>🎬 <b>Yenilik:</b> Artık kararlarında ekran sarsılacak, iş yaparken ve kumar oynarken sinematik ara sahneler girecek!</p>
+            </div>
+            <button id="start-btn" class="menu-btn animate-pulse">Hayata Atıl 🚀</button>
+        </div>
+
+        <!-- ANA OYUN ALANI -->
+        <div id="game-screen" class="screen hidden">
+            <!-- ÜST STAT BARLARI -->
+            <div class="top-status-bar">
+                <div class="main-stats">
+                    <div class="stat-badge date"><span id="day-display">GÜN: 1</span> <span id="phase-display" class="phase-morning">🌅 Sabah</span></div>
+                    <button id="menu-toggle-btn" class="hamburger-btn">☰</button>
+                </div>
+                <div class="sub-stats-row">
+                    <div class="stat-badge happiness">😊 Mutluluk: <span id="happiness-display">%100</span></div>
+                    <div class="stat-badge job-title-badge">💼 <span id="job-title-display">Çaylak</span></div>
+                </div>
+                <div class="job-stats">
+                    <span>🏢 İş Performansı:</span>
+                    <div class="progress-bar"><div id="job-progress" style="width: 50%;"></div></div>
+                </div>
+                <div class="social-stats">
+                    <div class="social-item">👩‍❤️‍👨 Eş: <b id="rel-spouse">%50</b></div>
+                    <div class="social-item">🧓 Aile: <b id="rel-parents">%50</b></div>
+                    <div class="social-item">🤝 Kanka: <b id="rel-friend">%50</b></div>
+                </div>
+            </div>
+
+            <!-- YAN PANEL (DRAWER) -->
+            <div id="side-drawer" class="drawer hidden">
+                <div class="drawer-header">
+                    <h3>⚙️ EYLEM MERKEZİ</h3>
+                    <button id="close-drawer-btn" class="close-btn">✕</button>
+                </div>
+                <div class="drawer-content">
+                    <div class="tabs">
+                        <button class="tab-btn active" onclick="switchTab('ek-is')">🛠️ Ek İş</button>
+                        <button class="tab-btn" onclick="switchTab('sirket')">🏢 Şirket Kur</button>
+                        <button class="tab-btn" onclick="switchTab('meslek')">👔 Meslekler</button>
+                    </div>
+
+                    <div id="tab-ek-is" class="tab-panel">
+                        <p class="tab-desc">Boş vaktinde çalış, anında nakit kazan!</p>
+                        <div class="action-item">
+                            <div><b>🛵 Moto Kuryelik</b><br><small>Kazanç: +1.500 TL | Mutluluk: -10</small></div>
+                            <button onclick="doFreelance('kurye')" class="action-buy-btn">Çalış</button>
+                        </div>
+                        <div class="action-item">
+                            <div><b>🎬 YouTube Videosu Çek</b><br><small>Kazanç: +2.500 TL | Kanka: -5</small></div>
+                            <button onclick="doFreelance('youtube')" class="action-buy-btn">Üret</button>
+                        </div>
+                        <div class="action-item">
+                            <div><b>🎤 Düğünde Şarkı Söyle</b><br><small>Kazanç: +4.000 TL | Eş: -10</small></div>
+                            <button onclick="doFreelance('sarki')" class="action-buy-btn">Sahne Al</button>
+                        </div>
+                    </div>
+
+                    <div id="tab-sirket" class="tab-panel hidden">
+                        <p class="tab-desc">Her günün sonunda otomatik pasif gelir elde et!</p>
+                        <div class="action-item">
+                            <div><b>🍚 Seyyar Pilav Arabası</b><br><small>Maliyet: 8.000 TL | Gelir: +500 TL</small></div>
+                            <button id="buy-pilav-btn" onclick="buyBusiness('pilav')" class="action-buy-btn">Satın Al</button>
+                        </div>
+                        <div class="action-item">
+                            <div><b>📦 E-Ticaret Mağazası</b><br><small>Maliyet: 20.000 TL | Gelir: +1.500 TL</small></div>
+                            <button id="buy-eticaret-btn" onclick="buyBusiness('eticaret')" class="action-buy-btn">Satın Al</button>
+                        </div>
+                        <div class="action-item">
+                            <div><b>💻 Yazılım Şirketi</b><br><small>Maliyet: 50.000 TL | Gelir: +4.500 TL</small></div>
+                            <button id="buy-yazilim-btn" onclick="buyBusiness('yazilim')" class="action-buy-btn">Satın Al</button>
+                        </div>
+                    </div>
+
+                    <div id="tab-meslek" class="tab-panel hidden">
+                        <p class="tab-desc">Kalıcı ana mesleğini değiştir, maaşını uçur!</p>
+                        <div class="action-item">
+                            <div><b>🏦 Banka Müdürü</b><br><small>Maaş: 45.000 TL | Şart: Perf > %60</small></div>
+                            <button onclick="changeJob('mudur')" class="action-buy-btn">Başvur</button>
+                        </div>
+                        <div class="action-item">
+                            <div><b>🚀 Kıdemli Yazılımcı</b><br><small>Maaş: 70.000 TL | Şart: Perf > %80</small></div>
+                            <button onclick="changeJob('yazilimci')" class="action-buy-btn">Başvur</button>
+                        </div>
+                        <div class="action-item">
+                            <div><b>👑 Holding CEO'su</b><br><small>Maaş: 120.000 TL | Şart: Perf > %95</small></div>
+                            <button onclick="changeJob('ceo')" class="action-buy-btn">Başvur</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DİNAMİK OLAY KARTI -->
+            <div class="rpg-card" id="game-card">
+                <div class="card-header">
+                    <span id="card-category">💼 İŞ YERİ</span>
+                    <span id="card-sender">Patron</span>
+                </div>
+                <div class="card-body">
+                    <div id="card-avatar">🏢</div>
+                    <h3 id="card-title">Yükleniyor</h3>
+                    <p id="card-text">Hazırlanıyor...</p>
+                </div>
+                <div class="card-footer-previews">
+                    <div class="preview-box accept"><b>ONAYLA:</b><br><span id="accept-preview">-</span></div>
+                    <div class="preview-box reject"><b>REDDET:</b><br><span id="reject-preview">-</span></div>
+                </div>
+            </div>
+
+            <!-- EYLEM BUTONLARI -->
+            <div class="rpg-buttons">
+                <button id="reject-btn" class="rpg-btn btn-danger">❌ REDDET / PAS GEÇ</button>
+                <button id="accept-btn" class="rpg-btn btn-success">✅ KABUL ET / SEÇ</button>
+            </div>
+
+            <!-- ŞANS OYUNLARI MENÜSÜ -->
+            <div class="extra-actions-menu">
+                <button id="action-crypto-btn" class="mini-market-btn">₿ Kripto Al/Sat</button>
+                <button id="action-bet-btn" class="mini-market-btn">⚽ İddaa Kuponu</button>
+                <button id="action-market-btn" class="mini-market-btn">🛒 Şans Bileti</button>
+            </div>
+
+            <!-- ALT CÜZDAN HUD -->
+            <div class="wallet-hud" id="wallet-hud-box">
+                <div class="wallet-info">
+                    <small>CÜZDANDAKİ NAKİT</small>
+                    <h2 id="money-display">28.075 TL</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- BİTİŞ EKRANI -->
+        <div id="end-screen" class="screen hidden">
+            <div class="end-box">
+                <h1 id="end-title">ELENDİN!</h1>
+                <p id="end-text">Nedeni burada detaylıca yazacak.</p>
+                <div class="score-board">
+                    <p>📊 Hayatta Kaldığın Gün: <b id="score-days">0</b></p>
+                    <p>💰 Son Nakit Durumu: <b id="score-money">0 TL</b></p>
+                </div>
+                <button id="restart-btn" class="menu-btn">Kaderini Yeniden Yaz 🔄</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
